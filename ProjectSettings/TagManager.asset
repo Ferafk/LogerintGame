@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Fire
+  - Water
+  - Enemy
+  - descanso
+  - Corazon
+  - Suelo
+  - Vida
+  - menu
+  - Proyectil
+  - Moneda
+  - PuntajeTxt
+  - Diamante
+  - Puntaje
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - IgnorePlayer
+  - Water
+  - UI
+  - Player
+  - River
+  - Enemy
+  - groundLayer
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
