@@ -7,7 +7,6 @@ using UnityEngine.SceneManagement;
 public class MenuControl : MonoBehaviour
 {
     [SerializeField] private Canvas menu;
-    [SerializeField] private Canvas confirmationPanel;
     [SerializeField] private GameObject puntaje;
     private bool gameRunning;
 
@@ -19,11 +18,6 @@ public class MenuControl : MonoBehaviour
         if (menu != null)
         {
             menu.enabled = false;
-        }
-
-        if(confirmationPanel != null)
-        {
-            confirmationPanel.enabled = false;
         }
     }
 
@@ -38,35 +32,6 @@ public class MenuControl : MonoBehaviour
         }
     }
 
-    public void ShowConfirmation()
-    {
-        puntaje = GameObject.FindGameObjectWithTag("Puntaje");
-
-        if (puntaje == null)
-        {
-            ConfirmNewGame();
-        }
-        else
-        {
-            confirmationPanel.enabled = true;
-        }
-    }
-
-    public void ConfirmNewGame()
-    {
-        confirmationPanel.enabled = false;
-
-        if (puntaje != null)
-            Puntaje.Instance.ResetAllData();
-
-        SceneManager.LoadScene("Nivel1");
-    }
-
-    public void CancelNewGame()
-    {
-        confirmationPanel.enabled = false;
-    }
-
     public void ReStart()
     {
         
@@ -79,7 +44,6 @@ public class MenuControl : MonoBehaviour
     public void NextLvl(string nivel)
     {
         Puntaje.Instance.puntos = 0;
-
         Puntaje.Instance.vidasActuales = Puntaje.Instance.vidas;
 
         SceneManager.LoadScene(nivel);
@@ -87,6 +51,7 @@ public class MenuControl : MonoBehaviour
 
     public void MoveMenu()
     {
+        Puntaje.Instance.lastScene = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene("Menu");
     }
 
@@ -128,15 +93,6 @@ public class MenuControl : MonoBehaviour
                 menu.enabled = true;
             }
         }
-    }
-
-    public void SalirJuego()
-    {
-    #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-    #else
-            Application.Quit();
-    #endif
     }
 
 }

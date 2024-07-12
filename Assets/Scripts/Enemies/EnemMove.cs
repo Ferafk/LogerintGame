@@ -123,17 +123,12 @@ public class EnemMove : MonoBehaviour
         if (collision.gameObject.CompareTag("Player") && !enojado)
         {
             Movement moveScript = collision.gameObject.GetComponent<Movement>();
-            Move2d move2dScript = collision.gameObject.GetComponent<Move2d>();
 
             bool enllamas = false;
 
             if (moveScript != null)
             {
                 enllamas = moveScript.enllamas;
-            }
-            else if (move2dScript != null)
-            {
-                enllamas = move2dScript.enllamas;
             }
 
             if (enllamas)
@@ -150,7 +145,6 @@ public class EnemMove : MonoBehaviour
         {
             enespera = true;
             animator.SetTrigger("Swim");
-            box.size = new Vector2(2f, 1.5f);
         }
     }
 

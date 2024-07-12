@@ -14,6 +14,7 @@ public class Puntaje : MonoBehaviour
     public int vidasActuales;
 
     public string lastScene;
+    public int desbloquear = 0;
     public int diamantes { get; private set; }
     public Dictionary<int, bool> Diamonds { get; private set; } = new Dictionary<int, bool>
     {
@@ -73,7 +74,7 @@ public class Puntaje : MonoBehaviour
     {
         if (monedaTexto != null)
         {
-            monedaTexto.text = $"{puntos}/{total}";
+            monedaTexto.text = $"{puntos}";
         }
         else
         {
