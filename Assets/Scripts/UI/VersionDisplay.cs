@@ -11,7 +11,7 @@ public class VersionDisplay : MonoBehaviour
     {
         versionText = GetComponent<TextMeshProUGUI>();
         string version = Application.version;
-        versionText.text = "V. " + version;
+        versionText.text = "V." + version;
     }
 
 }

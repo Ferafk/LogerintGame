@@ -52,6 +52,7 @@ public class MenuControl : MonoBehaviour
     public void MoveMenu()
     {
         Puntaje.Instance.lastScene = SceneManager.GetActiveScene().name;
+        AudioManager.instance.PlayMusic("Theme");
         SceneManager.LoadScene("Menu");
     }
 
@@ -59,6 +60,8 @@ public class MenuControl : MonoBehaviour
     {
         Puntaje.Instance.lastScene = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene("Perdiste");
+        AudioManager.instance.StopMusic();
+        AudioManager.instance.StopMusic2();
     }
 
     public void ReintentarUltimo()
@@ -91,6 +94,7 @@ public class MenuControl : MonoBehaviour
             if (menu != null)
             {
                 menu.enabled = true;
+                AudioManager.instance.PlaySFX("Pause");
             }
         }
     }

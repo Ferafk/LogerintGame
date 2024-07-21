@@ -203,6 +203,7 @@ GameObject:
   - component: {fileID: 7192704193251856334}
   - component: {fileID: 8119146320606621380}
   - component: {fileID: 5791932817250546376}
+  - component: {fileID: 3099946156469944444}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -334,3 +335,11 @@ MonoBehaviour:
   forceDamping: 1.2
   activePushEffects: []
   OnPush: 0
+--- !u!81 &3099946156469944444
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7135451771993085178}
+  m_Enabled: 1

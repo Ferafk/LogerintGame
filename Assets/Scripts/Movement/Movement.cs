@@ -155,6 +155,7 @@ public class Movement : MonoBehaviour
             if (enrio == 0)
             {
                 animador.SetTrigger("Roll-in");
+                AudioManager.instance.PlaySFX("WaterStep");
             }
             velocidad = desacelerar;
             enllamas = false;
@@ -165,6 +166,7 @@ public class Movement : MonoBehaviour
         {
             if (lifes < 2)
             {
+                AudioManager.instance.PlaySFX("Coin");
                 Puntaje.Instance.AgregarVida();
                 lifes = Puntaje.Instance.vidas;
                 animador.SetInteger("Lives", lifes);
@@ -181,6 +183,7 @@ public class Movement : MonoBehaviour
         if (collision.CompareTag("Moneda"))
         {
             Puntaje.Instance.AgregarMoneda(1);
+            AudioManager.instance.PlaySFX("Coin");
             Destroy(collision.gameObject);
         }
     }

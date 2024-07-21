@@ -13,6 +13,7 @@ public class CambiarRio : MonoBehaviour
         {
             if (Puntaje.Instance.puntos >= pago)
             {
+                AudioManager.instance.PlaySFX("Button");
                 foreach (PushEffect rios in _river)
                 {
                     rios.cambiararFlujo();
