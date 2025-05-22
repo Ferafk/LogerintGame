@@ -113,6 +113,7 @@ public class Movement : MonoBehaviour
         _revive = true;
         StartCoroutine(Parpadeo());
         vida = maxVida;
+        AudioManager.instance.SetCombat(false);
         Invoke("puedeMover", 1f);
     }
     public void Perdiste()
@@ -148,6 +149,7 @@ public class Movement : MonoBehaviour
             animador.SetTrigger("Fire");
             velocidad = aceleracion;
             enllamas = true;
+            AudioManager.instance.SetCombat(true);
         }
 
         if (collision.gameObject.CompareTag("Water"))
@@ -158,7 +160,11 @@ public class Movement : MonoBehaviour
                 AudioManager.instance.PlaySFX("WaterStep");
             }
             velocidad = desacelerar;
-            enllamas = false;
+            if (enllamas)
+            {
+                enllamas = false;
+                AudioManager.instance.SetCombat(false);
+            }
             enrio++;
         }
 
