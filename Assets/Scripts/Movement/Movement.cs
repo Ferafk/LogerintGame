@@ -1,7 +1,21 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+
+#region Estados
+
+public enum PlayerState
+{
+    Normal,
+    OnFire,
+    InWater,
+    Reviving,
+    Dead
+}
+
+#endregion
 
 public class Movement : MonoBehaviour
 {
@@ -11,39 +25,41 @@ public class Movement : MonoBehaviour
     [SerializeField] public float desacelerar = 5f;
 
     [Header("Vida")]
-    [SerializeField] private float vida;
+    public float vida;
     [SerializeField] private float maxVida = 10f;
     [SerializeField] private BarraVida barraVida;
 
     [Header("Escenas")]
     [SerializeField] private MenuControl menu;
 
+    [Header("Debug")]
+    [SerializeField] private TextMeshPro debugText;
+
     private int lifes;
-    private bool perdiste = false;
 
     private float velocidad;
-    private Vector2 movimiento;
+    private bool istakingDamage = false;
     private Animator animador;
     private SpriteRenderer sprite;
     private Rigidbody2D body;
-    private Fuerzas _fuerzas;
-    public bool enllamas;
-    private bool _revive;
-    private int enrio;
 
+    public PlayerState currentState = PlayerState.Normal;
+    private int waterZoneCount = 0;
+
+    [HideInInspector] public bool isDisabled = false;
+    [HideInInspector] public bool isInAttackRange = false;
 
     void Start()
     {
         body = GetComponent<Rigidbody2D>();
         animador = GetComponentInChildren<Animator>();
         sprite = GetComponentInChildren<SpriteRenderer>();
-        menu = GameObject.FindWithTag("menu").GetComponent<MenuControl>();
-        barraVida = GameObject.FindWithTag("Vida").GetComponent<BarraVida>();
-        _fuerzas = GetComponent<Fuerzas>();
+        menu = GameObject.FindWithTag("menu")?.GetComponent<MenuControl>();
+        barraVida = GameObject.FindWithTag("Vida")?.GetComponent<BarraVida>();
 
         velocidad = velocidadInicial;
         vida = maxVida;
-        lifes = Puntaje.Instance.vidas;
+        lifes = Puntaje.Instance != null ? Puntaje.Instance.vidas : 2;
 
         barraVida?.InizializarBV(vida);
         animador.SetInteger("Lives", lifes);
@@ -52,77 +68,115 @@ public class Movement : MonoBehaviour
     
     void Update()
     {
+        if (currentState == PlayerState.Dead) return;
+
+        HandleInput();
+        HandleHealth();
+
+        if (debugText)
+            debugText.text = currentState.ToString();
+    }
+
+    void HandleInput()
+    {
         float moveX = Input.GetAxis("Horizontal");
         float moveY = Input.GetAxis("Vertical");
 
-        movimiento = new Vector2(moveX, moveY).normalized * velocidad;
-        body.velocity = movimiento;
+        Vector2 input = new Vector2(moveX, moveY).normalized;
 
-        if (enllamas)
+        switch (currentState)
         {
-            if (vida > 0)
-            {
-                vida -= Time.deltaTime;
-            }
+            case PlayerState.Normal:
+                body.velocity = input * velocidad;
+                isDisabled = false;
+                if (moveX != 0)
+                {
+                    sprite.flipX = moveX > 0;
+                }
+                animador.SetBool("Move", moveX != 0 || moveY != 0);
+                break;
+            case PlayerState.OnFire:
+                isInAttackRange = true;
+                velocidad = aceleracion;
+                animador.SetTrigger("Fire");
+                //AudioManager.instance?.SetCombat(true);
+                body.velocity = input * velocidad;
+                if (moveX != 0) sprite.flipX = moveX > 0;
+                break;
+            case PlayerState.InWater:
+                isInAttackRange = false;
+                isDisabled = true;
+                body.velocity = input * velocidad;
+                if (moveX != 0) sprite.flipX = moveX > 0;
+                break;
+            case PlayerState.Reviving:
+            case PlayerState.Dead:
+                isInAttackRange = false;
+                isDisabled = true;
+                body.velocity = Vector2.zero;
+                break;
         }
-        else if (!perdiste)
-        {
-            vida += (vida < maxVida) ? Time.deltaTime : 0;
-        }
+    }
+
+    void HandleHealth()
+    {
+        if (istakingDamage)
+            vida -= Time.deltaTime;
+        else if (vida < maxVida && currentState != PlayerState.Dead)
+            vida += Time.deltaTime;
 
         barraVida?.CambiarVidaActual(vida);
 
-        if (moveX != 0)
+        if (vida <= 0.1f && currentState != PlayerState.Dead)
         {
-            sprite.flipX = moveX > 0;
+            if (lifes > 0) TriggerRevive();
+            else TriggerGameOver();
         }
 
-        animador.SetBool("Move", moveX != 0 || moveY != 0);
-
-        if (lifes > 0)
+        if (currentState == PlayerState.OnFire || isInAttackRange)
         {
-            if (vida < 1 && !_revive)
-            {
-                DisminuirVida();
-            }
+            istakingDamage = true;
         }
         else
         {
-            if (vida < 0.1)
-            {
-                Perdiste();
-            }
+            istakingDamage = false;
         }
-
     }
 
-    private void DisminuirVida()
+    void TriggerRevive()
     {
-        velocidad = 0;
-        enllamas = false;
+        currentState = PlayerState.Reviving;
         animador.SetTrigger("Lose");
-        Puntaje.Instance.QuitarVida();
-        lifes = Puntaje.Instance.vidas;
+        
+        if (Puntaje.Instance != null)
+        {
+            Puntaje.Instance.QuitarVida();
+            lifes = Puntaje.Instance.vidas;
+        }
+        else
+        {
+            lifes--;
+        }
+        
         animador.SetInteger("Lives", lifes);
-        Invoke("Despertar", 1f);
+        Invoke(nameof(Despertar), 1f);
     }
+
+    void TriggerGameOver()
+    {
+        currentState = PlayerState.Dead;
+        animador.SetTrigger("Lose");
+        menu?.MovePerdiste();
+    }
+
     private void Despertar()
     {
         velocidad = 0;
         animador.SetTrigger("Revive");
-        _revive = true;
         StartCoroutine(Parpadeo());
         vida = maxVida;
-        AudioManager.instance.SetCombat(false);
+        AudioManager.instance?.SetCombat(false);
         Invoke("puedeMover", 1f);
-    }
-    public void Perdiste()
-    {
-        velocidad = 0;
-        enllamas = false;
-        animador.SetTrigger("Lose");
-        perdiste = true;
-        menu.MovePerdiste();
     }
 
     IEnumerator Parpadeo()
@@ -138,50 +192,54 @@ public class Movement : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
         sprite.color = colorOriginal;
-        _revive = false;
     }
 
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Fire") && !enllamas && enrio==0 && !_revive)
+        if (collision.CompareTag("Water"))
         {
-            animador.SetTrigger("Fire");
-            velocidad = aceleracion;
-            enllamas = true;
-            AudioManager.instance.SetCombat(true);
-        }
-
-        if (collision.gameObject.CompareTag("Water"))
-        {
-            if (enrio == 0)
+            if (waterZoneCount == 0)
             {
                 animador.SetTrigger("Roll-in");
-                AudioManager.instance.PlaySFX("WaterStep");
+                AudioManager.instance?.PlaySFX("WaterStep");
             }
+
+            waterZoneCount++;
             velocidad = desacelerar;
-            if (enllamas)
+
+            if (currentState == PlayerState.OnFire)
             {
-                enllamas = false;
-                AudioManager.instance.SetCombat(false);
+                currentState = PlayerState.InWater;
+                AudioManager.instance?.SetCombat(false);
             }
-            enrio++;
+            else if (currentState == PlayerState.Normal)
+            {
+                currentState = PlayerState.InWater;
+            }
+
+        }
+
+
+        if (collision.gameObject.CompareTag("Fire") && currentState != PlayerState.OnFire && currentState != PlayerState.Reviving && currentState != PlayerState.Dead)
+        {
+            currentState = PlayerState.OnFire;
         }
 
         if (collision.gameObject.CompareTag("Corazon"))
         {
             if (lifes < 2)
             {
-                AudioManager.instance.PlaySFX("Coin");
+                AudioManager.instance?.PlaySFX("Coin");
                 Puntaje.Instance.AgregarVida();
                 lifes = Puntaje.Instance.vidas;
                 animador.SetInteger("Lives", lifes);
                 Destroy(collision.gameObject);
-                if (enrio == 0 && !enllamas)
+                if (currentState == PlayerState.Normal)
                 {
                     velocidad = 0;
                     animador.SetTrigger("Revive");
-                    Invoke("puedeMover", 1f);
+                    Invoke(nameof(puedeMover), 1f);
                 }
             }
         }
@@ -189,42 +247,38 @@ public class Movement : MonoBehaviour
         if (collision.CompareTag("Moneda"))
         {
             Puntaje.Instance.AgregarMoneda(1);
-            AudioManager.instance.PlaySFX("Coin");
+            AudioManager.instance?.PlaySFX("Coin");
             Destroy(collision.gameObject);
         }
     }
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            vida -= Time.deltaTime * 1.3f;
-        }
-
         if (collision.gameObject.CompareTag("Water"))
         {
             velocidad = desacelerar;
-            enllamas = false;
         }
     }
 
     void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Water"))
+        if (collision.CompareTag("Water"))
         {
-            if (enrio == 1)
+            waterZoneCount = Mathf.Max(0, waterZoneCount - 1);
+            if (waterZoneCount == 0)
             {
-            animador.SetTrigger("Roll-out");
-            velocidad = 0f;
-            Invoke("puedeMover", 1f);
+                animador.SetTrigger("Roll-out");
+                currentState = PlayerState.Normal;
+                velocidad = 0;
+                Invoke(nameof(puedeMover), 1f);
             }
-            enrio--;
         }
     }
 
     void puedeMover()
     {
         velocidad = velocidadInicial;
+        currentState = PlayerState.Normal;
     }
 
 }

@@ -96,7 +96,8 @@ public class EnemMove : MonoBehaviour
     void MoverHaciaPuntoSeguro()
     {
         Girar();
-        transform.position = Vector2.MoveTowards(transform.position, puntoSeguro.position, velocidad * Time.deltaTime);
+        if (puntoSeguro != null)
+            transform.position = Vector2.MoveTowards(transform.position, puntoSeguro.position, velocidad * Time.deltaTime);
     }
     void ActualizarTiempoEspera()
     {
@@ -128,7 +129,7 @@ public class EnemMove : MonoBehaviour
 
             if (moveScript != null)
             {
-                enllamas = moveScript.enllamas;
+                enllamas = moveScript.currentState == PlayerState.OnFire;
             }
 
             if (enllamas)

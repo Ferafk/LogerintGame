@@ -17,6 +17,7 @@ TagManager:
   - PuntajeTxt
   - Diamante
   - Puntaje
+  - Puerta
   layers:
   - Default
   - TransparentFX
